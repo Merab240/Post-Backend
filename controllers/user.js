@@ -18,10 +18,18 @@ const register = async (req, res)=>{
        const hashedPassword = await bcrypt.hash(password, 12);
 
        //creates a new user
-      const result = await User.create({email:email, password:hashedPassword, name:`${firstName} ${lastName}`});
+      const result = await User.create({
+        email:email, 
+        password:hashedPassword, 
+        name:`${firstName} ${lastName}`
+       
+    });
       
       //token used for authorizing the user
-       const token =jwt.sign({email: result.email, id:result._id}, 'test', {expiresIn: "1h" });
+       const token =jwt.sign({
+        email: result.email, 
+        id:result._id, }, 'test',
+         {expiresIn: "1h" });
        res.status(200).json({message: "User created", result, token});
     } 
     catch (error) {
@@ -35,16 +43,34 @@ const login = async (req, res) =>{
     //what i want to get from the body
     const {email, password} = req.body;
 try {
-    
+    //checks if the user exists
     const existingUser = await User.findOne({email});
-    if(!existingUser) return
+    
+    if(!existingUser) return res.status(404).json({message: "User doesn't exist"});
+
+//checks if the password is correct
 const isPasswordCorrect = await bcrypt.compare(password, existingUser.password);
 
 if(!isPasswordCorrect) return res.status(400).json({message: "Invalid password"});
 const token = jwt.sign({email: existingUser.email, id: existingUser._id}, 'test', {expiresIn: "1h"});
 res.status(200).json({result: existingUser, token});
 
+//  Include role in the JWT payload
+    const tokenAdmin = jwt.sign(
+      {
+        email: existingUser.email,
+        id: existingUser._id,
+        
+      },
+       "test", 
+      { expiresIn: "1h" }
+    );
 
+    // Return user info and token
+    res.status(200).json({
+      result: existingUser,
+      token,
+    });
 } catch (error) {
     
 }
@@ -120,5 +146,5 @@ module.exports = {
     deleteUser
 
 };
-//function to login the user
+
 

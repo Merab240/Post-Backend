@@ -22,5 +22,8 @@ const auth = async (req, res, next) =>{
     }
 }
 
+
+
 //exporting the middleware function
 module.exports = auth;
+  
